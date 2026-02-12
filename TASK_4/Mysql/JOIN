@@ -1,0 +1,11 @@
+SELECT 
+    c.name AS Customer,
+    p.product_name AS Product,
+    o.quantity,
+    p.price,
+    (o.quantity * p.price) AS Total_Amount,
+    o.order_date
+FROM Orders o
+JOIN Customers c ON o.customer_id = c.customer_id
+JOIN Products p ON o.product_id = p.product_id
+ORDER BY o.order_date DESC;
