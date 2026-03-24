@@ -1,0 +1,93 @@
+CREATE DATABASE automated_logging;
+USE automated_logging;
+
+CREATE TABLE employees (
+    emp_id INT AUTO_INCREMENT PRIMARY KEY,
+    emp_name VARCHAR(100) NOT NULL,
+    department VARCHAR(100) NOT NULL,
+    salary DECIMAL(10,2) NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE employee_audit_log (
+    log_id INT AUTO_INCREMENT PRIMARY KEY,
+    emp_id INT,
+    action_type VARCHAR(20),
+    old_name VARCHAR(100),
+    new_name VARCHAR(100),
+    old_department VARCHAR(100),
+    new_department VARCHAR(100),
+    old_salary DECIMAL(10,2),
+    new_salary DECIMAL(10,2),
+    action_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+DELIMITER //
+
+CREATE TRIGGER trg_employee_insert
+AFTER INSERT ON employees
+FOR EACH ROW
+BEGIN
+    INSERT INTO employee_audit_log (
+        emp_id,
+        action_type,
+        old_name,
+        new_name,
+        old_department,
+        new_department,
+        old_salary,
+        new_salary
+    )
+    VALUES (
+        NEW.emp_id,
+        'INSERT',
+        NULL,
+        NEW.emp_name,
+        NULL,
+        NEW.department,
+        NULL,
+        NEW.salary
+    );
+END //
+
+CREATE TRIGGER trg_employee_update
+AFTER UPDATE ON employees
+FOR EACH ROW
+BEGIN
+    INSERT INTO employee_audit_log (
+        emp_id,
+        action_type,
+        old_name,
+        new_name,
+        old_department,
+        new_department,
+        old_salary,
+        new_salary
+    )
+    VALUES (
+        NEW.emp_id,
+        'UPDATE',
+        OLD.emp_name,
+        NEW.emp_name,
+        OLD.department,
+        NEW.department,
+        OLD.salary,
+        NEW.salary
+    );
+END //
+
+DELIMITER ;
+
+INSERT INTO employees (emp_name, department, salary) VALUES
+('Anitha', 'HR', 30000.00),
+('Rahul', 'IT', 45000.00),
+('Sneha', 'Finance', 40000.00);
+
+CREATE VIEW daily_activity_report AS
+SELECT 
+    DATE(action_time) AS activity_date,
+    action_type,
+    COUNT(*) AS total_actions
+FROM employee_audit_log
+GROUP BY DATE(action_time), action_type
+ORDER BY activity_date DESC, action_type;
