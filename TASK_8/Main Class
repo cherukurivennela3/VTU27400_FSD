@@ -1,0 +1,21 @@
+package com.example.employeemgmt;
+
+import com.example.employeemgmt.config.AppConfig;
+import com.example.employeemgmt.model.Employee;
+import com.example.employeemgmt.service.EmployeeService;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+public class App {
+    public static void main(String[] args) {
+
+        BeanFactory factory = new AnnotationConfigApplicationContext(AppConfig.class);
+
+        EmployeeService service = factory.getBean(EmployeeService.class);
+
+        service.addEmployee(new Employee(1, "John", 50000));
+        service.addEmployee(new Employee(2, "Alice", 60000));
+
+        service.getEmployees().forEach(System.out::println);
+    }
+}
